@@ -1,7 +1,7 @@
 function [speed_grid,speedVec,speed] = speed_map(posx,posy,nbins)
 
 %compute velocity
-sampleRate = 50;
+sampleRate = 25;
 velx = diff([posx(1); posx]); vely = diff([posy(1); posy]); % add the extra just to make the vectors the same size
 speed = sqrt(velx.^2+vely.^2)*sampleRate; 
 maxSpeed = 50; speed(speed>maxSpeed) = maxSpeed; %send everything over 50 cm/s to 50 cm/s

@@ -1,5 +1,5 @@
 function [testFit,trainFit,param_mean] = fit_model(A,dt,spiketrain,filter,modelType,numFolds)
-
+dbstop if error
 %% Description
 % This code will section the data into 10 different portions. Each portion
 % is drawn from across the entire recording session. It will then

@@ -10,7 +10,7 @@
 n_pos_bins = 20;
 n_dir_bins = 18;
 n_speed_bins = 10;
-n_theta_bins = 18;
+% n_theta_bins = 18;
 
 % compute position matrix
 [posgrid, posVec] = pos_map([posx_c posy_c], n_pos_bins, boxSize);
@@ -22,18 +22,17 @@ n_theta_bins = 18;
 [speedgrid,speedVec,speed] = speed_map(posx_c,posy_c,n_speed_bins);
 
 % compute theta matrix
-[thetagrid,thetaVec,phase] = theta_map(filt_eeg,post,eeg_sample_rate,n_theta_bins);
+% [thetagrid,thetaVec,phase] = theta_map(filt_eeg,post,eeg_sample_rate,n_theta_bins);
 
 % remove times when the animal ran > 50 cm/s (these data points may contain artifacts)
 too_fast = find(speed >= 50);
 posgrid(too_fast,:) = []; hdgrid(too_fast,:) = []; 
-speedgrid(too_fast,:) = []; thetagrid(too_fast,:) = [];
+speedgrid(too_fast,:) = []; % thetagrid(too_fast,:) = [];
 spiketrain(too_fast) = [];
-
 
 %% Fit all 15 LN models
 
-numModels = 15;
+numModels = 7;
 testFit = cell(numModels,1);
 trainFit = cell(numModels,1);
 param = cell(numModels,1);
@@ -41,24 +40,15 @@ A = cell(numModels,1);
 modelType = cell(numModels,1);
 
 % ALL VARIABLES
-A{1} = [ posgrid hdgrid speedgrid thetagrid]; modelType{1} = [1 1 1 1];
-% THREE VARIABLES
-A{2} = [ posgrid hdgrid speedgrid ]; modelType{2} = [1 1 1 0];
-A{3} = [ posgrid hdgrid  thetagrid]; modelType{3} = [1 1 0 1];
-A{4} = [ posgrid  speedgrid thetagrid]; modelType{4} = [1 0 1 1];
-A{5} = [  hdgrid speedgrid thetagrid]; modelType{5} = [0 1 1 1];
+A{1} = [ posgrid hdgrid speedgrid]; modelType{1} = [1 1 1];
 % TWO VARIABLES
-A{6} = [ posgrid hdgrid]; modelType{6} = [1 1 0 0];
-A{7} = [ posgrid  speedgrid ]; modelType{7} = [1 0 1 0];
-A{8} = [ posgrid   thetagrid]; modelType{8} = [1 0 0 1];
-A{9} = [  hdgrid speedgrid ]; modelType{9} = [0 1 1 0];
-A{10} = [  hdgrid  thetagrid]; modelType{10} = [0 1 0 1];
-A{11} = [  speedgrid thetagrid]; modelType{11} = [0 0 1 1];
+A{2} = [ posgrid hdgrid]; modelType{2} = [1 1 0 ];
+A{3} = [ posgrid  speedgrid ]; modelType{3} = [1 0 1];
+A{4} = [  hdgrid speedgrid ]; modelType{4} = [0 1 1];
 % ONE VARIABLE
-A{12} = posgrid; modelType{12} = [1 0 0 0];
-A{13} = hdgrid; modelType{13} = [0 1 0 0];
-A{14} = speedgrid; modelType{14} = [0 0 1 0];
-A{15} = thetagrid; modelType{15} = [0 0 0 1];
+A{5} = posgrid; modelType{5} = [1 0 0];
+A{6} = hdgrid; modelType{6} = [0 1 0];
+A{7} = speedgrid; modelType{7} = [0 0 1];
 
 % compute a filter, which will be used to smooth the firing rate
 filter = gaussmf(-4:4,[2 0]); filter = filter/sum(filter); 
@@ -72,3 +62,4 @@ for n = 1:numModels
     fprintf('\t- Fitting model %d of %d\n', n, numModels);
     [testFit{n},trainFit{n},param{n}] = fit_model(A{n},dt,spiketrain,filter,modelType{n},numFolds);
 end
+

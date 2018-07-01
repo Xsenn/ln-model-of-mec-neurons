@@ -1,5 +1,7 @@
 %% Description of run_me
-
+dbstop if error;
+warning('off','all')
+clearvars; close all; clc
 % This script is segmented into several parts. First, the data (an
 % example cell) is loaded. Then, 15 LN models are fit to the
 % cell's spike train. Each model uses information about 
@@ -20,12 +22,37 @@
 
 %% Clear the workspace and load the data
 
-clear all; close all; clc
+files = subdir('C:\Users\elhan\Github\Cells\6_Y2\*.mat');
+previousFilesToProcess = [276 279 285 286];
+
+for iiFile = 1:length(files)
+fprintf('Processing file %i / %i\n', iiFile, length(files));
 
 % load the data
-fprintf('(1/5) Loading data from example cell \n')
-load data_for_cell77
+load(files(iiFile).name);
 
+if iiFile < 31 && ~ismember(c.cell_number, previousFilesToProcess)
+    continue;
+end
+
+boxSize = 100;
+post = cVt.timestamps;
+
+    % make spiketrain
+    dt = mean(diff(post));
+    timebins = [post; (post(end) + dt)];
+    spiketrain = histcounts(c.timestamps, timebins)';
+
+posx = cVt.posx;
+posx2 = cVt.posx2;
+posx_c = cVt.posx_c;
+posy = cVt.posy;
+posy2 = cVt.posy2;
+posy_c = cVt.posy_c;
+sampleRate = 30;
+
+fprintf('(1/5) Loading data from example cell \n')
+% load data_for_cell77
 % description of variables included:
 % boxSize = length (in cm) of one side of the square box
 % post = vector of time (seconds) at every 20 ms time bin
@@ -40,6 +67,7 @@ load data_for_cell77
 % eeg_sample_rate = sample rate of filt_eeg (250 Hz)
 % sampleRate = sampling rate of neural data and behavioral variable (50Hz)
 
+
 %% fit the model
 fprintf('(2/5) Fitting all linear-nonlinear (LN) models\n')
 fit_all_ln_models
@@ -53,5 +81,8 @@ fprintf('(4/5) Computing tuning curves\n')
 compute_all_tuning_curves
 
 %% plot the results
-fprintf('(5/5) Plotting performance and parameters\n') 
-plot_performance_and_parameters
+if ~isnan(selected_model)
+    fprintf('(5/5) Plotting performance and parameters\n')
+    plot_performance_and_parameters
+end
+end
